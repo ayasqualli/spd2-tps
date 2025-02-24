@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Manipulation de vue</title>
+    <script src="https://unpkg.com/vue@3"></script>
+	<link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="monapp">
+      <button @click="toggleClickButton">{{ titre }}</button>
+      <div class="counter-div" style="display: flex; flex-direction: row">
+        <button @click="incrementCounter">++</button>
+        <p>{{compteur}}</p>
+        <button id="decrement" @click="decrementCounter">--</button>
+      </div>
+      <div class="typer">
+        <input type="text" id="input" placeholder="Enter your text without spaces" @input="spaceTyped">
+        <p v-if="typed" style="color: red;">Veuillez ne pas utiliser d'espaces.</p>
+      </div>
+    </div>
+
+    <script>
+      const appli = {
+        data() {
+          return {
+            titre: "Cliquez moi!",
+            clickButton: false,
+            compteur: 0,
+            typed: false
+          };
+        },
+        methods: {
+          toggleClickButton() {
+            this.clickButton = !this.clickButton;
+            this.titre = this.clickButton ? "Cliqué!" : "Cliquez moi!";
+          },
+          incrementCounter() {
+            this.compteur += 1;
+          },
+          decrementCounter() {
+            this.compteur -= 1;
+          },
+          spaceTyped(event) {
+            const inputText = event.target.value;
+            this.typed = inputText.includes(' ');
+          }
+        },
+      };
+
+      Vue.createApp(appli).mount("#monapp");
+    </script>
+  </body>
+</html>

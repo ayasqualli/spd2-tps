@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script src="https://unpkg.com/vue@3"></script>
+    <style>
+        .task {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
+        .completed {
+            background-color: #f0f0f0;
+            text-decoration: line-through;
+        }
+        .filter-button {
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .filter-button:hover {
+            background-color: #45a049;
+        }
+        .active-filter {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <task-list></task-list>
+    </div>
+
+    <script>
+        const TaskList = {
+            template: `
+                <div>
+                    <div>
+                        <button 
+                            @click="filter = 'all'"
+                            :class="{ 'active-filter': filter === 'all' }"
+                            class="filter-button"
+                            aria-label="Show all tasks">
+                            Toutes ({{ totalTasks }})
+                        </button>
+                        <button 
+                            @click="filter = 'active'"
+                            :class="{ 'active-filter': filter === 'active' }"
+                            class="filter-button"
+                            aria-label="Show active tasks">
+                            À faire ({{ activeTasks }})
+                        </button>
+                        <button 
+                            @click="filter = 'completed'"
+                            :class="{ 'active-filter': filter === 'completed' }"
+                            class="filter-button"
+                            aria-label="Show completed tasks">
+                            Terminées ({{ completedTasks }})
+                        </button>
+                    </div>
+                    
+                    <div v-for="task in filteredTasks" :key="task.id" class="task" :class="{ completed: task.completed }">
+                        <h3>{{ task.title }}</h3>
+                        <p>{{ task.description }}</p>
+                        <button 
+                            v-show="!task.completed"
+                            @click="completeTask(task.id)"
+                            aria-label="Mark task as completed">
+                            Marquer comme terminée
+                        </button>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    tasks: [],
+                    filter: 'all'
+                };
+            },
+            computed: {
+                filteredTasks() {
+                    switch (this.filter) {
+                        case 'active':
+                            return this.tasks.filter(task => !task.completed);
+                        case 'completed':
+                            return this.tasks.filter(task => task.completed);
+                        default:
+                            return this.tasks;
+                    }
+                },
+                totalTasks() {
+                    return this.tasks.length;
+                },
+                activeTasks() {
+                    return this.tasks.filter(task => !task.completed).length;
+                },
+                completedTasks() {
+                    return this.tasks.filter(task => task.completed).length;
+                }
+            },
+            methods: {
+                completeTask(id) {
+                    const task = this.tasks.find(task => task.id === id);
+                    if (task) {
+                        task.completed = true;
+                    }
+                }
+            },
+            async created() {
+                try {
+                    const response = await fetch('tasks.json');
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    this.tasks = await response.json();
+                } catch (error) {
+                    console.error('Failed to fetch tasks:', error);
+                    // Use backup data in case of failed fetch
+                    this.tasks = [
+                        {
+                            id: 1,
+                            title: "Faire les courses",
+                            description: "Acheter des légumes et du lait.",
+                            completed: false
+                        },
+                        {
+                            id: 2,
+                            title: "Faire du sport",
+                            description: "Courir pendant 30 minutes.",
+                            completed: true
+                        },
+                        {
+                            id: 3,
+                            title: "Réviser pour l'examen",
+                            description: "Relire le chapitre 5 du manuel.",
+                            completed: false
+                        }
+                    ];
+                }
+            }
+        };
+
+        const app = Vue.createApp({});
+        app.component('task-list', TaskList);
+        app.mount('#app');
+    </script>
+</body>
+
+</html>
